@@ -1,49 +1,33 @@
 const getState = ({ getStore, getActions, setStore }) => {
-	return {
-		store: {
-			message: null,
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
-		},
-		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-
-			getMessage: () => {
-				// fetching data from the backend
-				fetch(process.env.BACKEND_URL + "/api/hello")
-					.then(resp => resp.json())
-					.then(data => setStore({ message: data.message }))
-					.catch(error => console.log("Error loading message from backend", error));
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
-
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
-			}
-		}
-	};
+  return {
+    store: {
+      user: "",
+      loggedIn: false,
+      url: "https://3001-4geeksacade-reactflaskh-hpzn7l3phrp.ws-eu45.gitpod.io/api",
+    },
+    actions: {
+      verify: async () => {
+        try {
+          const resp = await fetch(getStore().url + "/protected", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              authorization:
+                "Bearer " + JSON.parse(localStorage.getItem("token")),
+            },
+          });
+          const data = await resp.json();
+          setStore({ loggedIn: data.logged_in || false });
+        } catch (e) {
+          setStore({ loggedIn: false });
+        }
+      },
+      logout: () => {
+        localStorage.clear();
+        setStore({ loggedIn: false });
+      },
+    },
+  };
 };
 
 export default getState;
